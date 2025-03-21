@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import click
+import sys
 from cont_mem_algos import worst_fit
 
 def print_memory_map(memory_map):
@@ -16,8 +17,7 @@ def read_reqs_file(reqs_filename):
     except FileNotFoundError:
         print(f'File not found {reqs_filename}', file=sys.stderr)
         return None
-    else:
-        return result
+    return result
 
 def read_memmap_file(memmap_filename):
     result = []
@@ -29,8 +29,7 @@ def read_memmap_file(memmap_filename):
     except FileNotFoundError:
         print(f'File not found {memmap_filename}', file=sys.stderr)
         return None
-    else:
-        return result
+    return result
 
 @click.command()
 @click.option('--memmap', help='file with the memory description')
@@ -42,24 +41,24 @@ def process(memmap, reqs, pos):
     
     if memory is None or requirements is None:
         return
-
-    first_pos = pos
-    work_memory = memory[:]
     
+    index = pos
+    work_memory = memory[:]
     print("Worst Fit")
     print_memory_map(work_memory)
     
-    index = first_pos
     for req in requirements:
-        search = worst_fit(work_memory, req, index)
+        result = worst_fit(work_memory, req, index)
         
-        if search is None:
+        if result is None:
             print(f"Not found: {req:#0{8}x}")
         else:
-            print(f"Assigned to the process base: {search[1]:#0{8}x} limit: {search[2]:#0{8}x}")
-            print(f"Index: {search[3]}")
-            print_memory_map(search[0])
-            index = search[3]
+            # Desempaquetamos el resultado correctamente:
+            work_memory, base, _, new_index = result
+            print(f"Assigned to the process base: {base:#0{8}x}")
+            print(f"Index: {new_index}")
+            print_memory_map(work_memory)
+            index = new_index  # Actualizar índice según nueva asignación
 
 if __name__ == '__main__':
     process()
